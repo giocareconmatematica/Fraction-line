@@ -1,327 +1,116 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generatore esercizi frazioni sulla linea numerica</title>
+  <meta charset="UTF-8">
+  <title>Frazioni sulla linea</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 24px;
-      background: #f6f7fb;
-      color: #111827;
+      text-align: center;
+      margin-top: 40px;
     }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: white;
-      padding: 24px;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    .line-container {
+      position: relative;
+      width: 600px;
+      height: 80px;
+      margin: 40px auto;
     }
 
-    h1 {
-      font-size: 28px;
-      margin-bottom: 8px;
+    .line {
+      position: absolute;
+      top: 40px;
+      width: 100%;
+      height: 2px;
+      background: black;
     }
 
-    .subtitle {
-      margin-top: 0;
-      color: #4b5563;
+    .point {
+      position: absolute;
+      top: 30px;
+      width: 10px;
+      height: 10px;
+      background: red;
+      border-radius: 50%;
+    }
+
+    .label {
+      position: absolute;
+      top: 50px;
+      transform: translateX(-50%);
       font-size: 16px;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-      margin: 24px 0;
-      padding: 18px;
-      background: #eef2ff;
-      border-radius: 14px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 9px;
-      border: 1px solid #c7d2fe;
-      border-radius: 8px;
-      font-size: 15px;
-      box-sizing: border-box;
-    }
-
     button {
-      padding: 11px 16px;
-      border: none;
-      border-radius: 10px;
-      background: #2563eb;
-      color: white;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .exercise {
-      margin-top: 22px;
-      padding: 20px 22px 26px;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      background: #ffffff;
-      page-break-inside: avoid;
-    }
-
-    .question {
-      font-size: 22px;
-      margin-bottom: 12px;
-    }
-
-    .options {
-      font-size: 24px;
-      margin-top: 6px;
-    }
-
-    .answer {
-      margin-top: 10px;
-      color: #047857;
-      font-size: 15px;
-      display: none;
-    }
-
-    svg {
-      width: 100%;
-      height: 220px;
-      overflow: visible;
-    }
-
-    .big-label {
-      font-size: 46px;
-      fill: #000;
-    }
-
-    .fraction {
-      font-size: 24px;
-      fill: #000;
-    }
-
-    @media print {
-      body {
-        background: white;
-        padding: 0;
-      }
-
-      .container {
-        box-shadow: none;
-        border-radius: 0;
-      }
-
-      .controls, .buttons, .subtitle, h1 {
-        display: none;
-      }
-
-      .answer {
-        display: none !important;
-      }
-
-      .exercise {
-        border: none;
-        border-bottom: 1px solid #ddd;
-        border-radius: 0;
-      }
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Generatore di esercizi: frazioni sulla linea numerica</h1>
-    <p class="subtitle">Genera esercizi con un solo riferimento sulla retta, il punto A e due frazioni da confrontare.</p>
 
-    <div class="controls">
-      <div>
-        <label for="count">Numero esercizi</label>
-        <input id="count" type="number" min="1" max="30" value="8" />
-      </div>
+<h2>Quale frazione è più vicina al punto A?</h2>
 
-      <div>
-        <label for="level">Livello</label>
-        <select id="level">
-          <option value="1">1 - semplice</option>
-          <option value="2" selected>2 - medio</option>
-          <option value="3">3 - più difficile</option>
-        </select>
-      </div>
+<div class="line-container">
+  <div class="line"></div>
+  <div id="pointA" class="point"></div>
+  <div id="labelA" class="label">A</div>
+</div>
 
-      <div>
-        <label for="answers">Soluzioni</label>
-        <select id="answers">
-          <option value="hide" selected>nascondi</option>
-          <option value="show">mostra</option>
-        </select>
-      </div>
-    </div>
+<div id="options"></div>
 
-    <div class="buttons">
-      <button onclick="generateExercises()">Genera esercizi</button>
-      <button onclick="window.print()">Stampa / Salva PDF</button>
-    </div>
+<button onclick="generate()">Genera nuovo esercizio</button>
 
-    <div id="output"></div>
-  </div>
+<script>
+function generate() {
+  const denominators = [2, 3, 4, 5, 6, 8];
+  const d = denominators[Math.floor(Math.random() * denominators.length)];
 
-  <script>
-    function gcd(a, b) {
-      while (b !== 0) {
-        const t = b;
-        b = a % b;
-        a = t;
+  let fractions = [];
+  for (let i = 1; i < d; i++) {
+    fractions.push({ n: i, d: d, value: i / d });
+  }
+
+  // punto A casuale
+  let pointValue = Math.random();
+
+  // posizione punto
+  let pointPixel = pointValue * 600;
+  document.getElementById("pointA").style.left = pointPixel + "px";
+  document.getElementById("labelA").style.left = pointPixel + "px";
+
+  // scegli 3 frazioni casuali
+  fractions.sort(() => 0.5 - Math.random());
+  let options = fractions.slice(0, 3);
+
+  // trova la più vicina
+  let correct = options.reduce((prev, curr) =>
+    Math.abs(curr.value - pointValue) < Math.abs(prev.value - pointValue) ? curr : prev
+  );
+
+  let container = document.getElementById("options");
+  container.innerHTML = "";
+
+  options.forEach(f => {
+    let btn = document.createElement("button");
+    btn.innerHTML = `${f.n}/${f.d}`;
+
+    btn.onclick = () => {
+      if (f === correct) {
+        alert("Corretto!");
+      } else {
+        alert("Riprova");
       }
-      return Math.abs(a);
-    }
+    };
 
-    function simplify(n, d) {
-      const g = gcd(n, d);
-      return [n / g, d / g];
-    }
+    container.appendChild(btn);
+  });
+}
 
-    function fractionText(n, d) {
-      if (n === 0) return "0";
-      if (d === 1) return String(n);
-      if (n === d) return "1";
-      return `${n}/${d}`;
-    }
+// primo esercizio
+generate();
+</script>
 
-    function fractionSvg(x, y, n, d) {
-      if (d === 1 || n === d) {
-        return `<text x="${x}" y="${y}" text-anchor="middle" class="fraction">${fractionText(n, d)}</text>`;
-      }
-      return `
-        <text x="${x}" y="${y - 18}" text-anchor="middle" class="fraction">${n}</text>
-        <line x1="${x - 18}" y1="${y - 10}" x2="${x + 18}" y2="${y - 10}" stroke="black" stroke-width="2" />
-        <text x="${x}" y="${y + 18}" text-anchor="middle" class="fraction">${d}</text>
-      `;
-    }
-
-    function randomChoice(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function makeProblem(level) {
-      let denominators;
-      if (level === 1) denominators = [4, 5, 6, 8];
-      if (level === 2) denominators = [5, 6, 8, 10, 12];
-      if (level === 3) denominators = [6, 8, 10, 12, 16];
-
-      // La retta rappresenta da 0 a 1, ma sul disegno NON scriviamo 0 e 1.
-      const d = randomChoice(denominators);
-      let n = Math.floor(Math.random() * (d - 2)) + 1; // evita 0 e 1
-      const valueA = n / d;
-      const correct = simplify(n, d);
-
-      // Riferimento visibile: una sola frazione, non necessariamente vicinissima ad A.
-      const references = [[1,4], [1,3], [1,2], [2,3], [3,4]];
-      let reference = randomChoice(references.filter(f => Math.abs(f[0] / f[1] - valueA) > 0.08));
-      if (!reference) reference = [1, 2];
-
-      // Distrattore: deve essere plausibile ma più lontano da A.
-      let wrong;
-      let attempts = 0;
-      do {
-        const wd = randomChoice(denominators);
-        const wn = Math.floor(Math.random() * (wd - 1)) + 1;
-        wrong = simplify(wn, wd);
-        attempts++;
-      } while (
-        attempts < 100 &&
-        (
-          (wrong[0] === correct[0] && wrong[1] === correct[1]) ||
-          Math.abs(wrong[0] / wrong[1] - valueA) <= Math.abs(correct[0] / correct[1] - valueA) + 0.08
-        )
-      );
-
-      // Se il distrattore casuale non va bene, costruiscilo spostando A.
-      if (wrong[0] === correct[0] && wrong[1] === correct[1]) {
-        wrong = simplify(Math.min(d - 1, n + 2), d);
-      }
-
-      const options = Math.random() < 0.5 ? [correct, wrong] : [wrong, correct];
-
-      return {
-        valueA,
-        correct,
-        wrong,
-        options,
-        reference
-      };
-    }
-
-    function drawNumberLine(problem) {
-      const width = 900;
-      const startX = 95;
-      const endX = 820;
-      const y = 92;
-      const lineLength = endX - startX;
-
-      const aX = startX + problem.valueA * lineLength;
-      const refX = startX + (problem.reference[0] / problem.reference[1]) * lineLength;
-
-      return `
-        <svg viewBox="0 0 ${width} 210">
-          <line x1="${startX}" y1="${y}" x2="${endX}" y2="${y}" stroke="#4f83cc" stroke-width="5" />
-          <polygon points="${startX},${y} ${startX + 20},${y - 12} ${startX + 20},${y + 12}" fill="#4f83cc" />
-          <polygon points="${endX},${y} ${endX - 20},${y - 12} ${endX - 20},${y + 12}" fill="#4f83cc" />
-
-          <line x1="${refX}" y1="${y - 32}" x2="${refX}" y2="${y + 32}" stroke="#4f83cc" stroke-width="5" />
-          ${fractionSvg(refX, 168, problem.reference[0], problem.reference[1])}
-
-          <line x1="${aX}" y1="${y - 44}" x2="${aX}" y2="${y + 44}" stroke="black" stroke-width="5" />
-          <text x="${aX}" y="182" text-anchor="middle" class="big-label">A</text>
-        </svg>
-      `;
-    }
-
-    function generateExercises() {
-      const count = Number(document.getElementById("count").value);
-      const level = Number(document.getElementById("level").value);
-      const showAnswers = document.getElementById("answers").value === "show";
-      const output = document.getElementById("output");
-      output.innerHTML = "";
-
-      for (let i = 1; i <= count; i++) {
-        const p = makeProblem(level);
-        const opt1 = fractionText(p.options[0][0], p.options[0][1]);
-        const opt2 = fractionText(p.options[1][0], p.options[1][1]);
-        const answer = fractionText(p.correct[0], p.correct[1]);
-
-        const div = document.createElement("div");
-        div.className = "exercise";
-        div.innerHTML = `
-          <div class="question">${i}. Quale frazione è più vicina al punto A sulla linea numerica?</div>
-          ${drawNumberLine(p)}
-          <div class="options">${opt1} oppure ${opt2}</div>
-          <div class="answer" style="display:${showAnswers ? "block" : "none"}">Soluzione: ${answer}</div>
-        `;
-        output.appendChild(div);
-      }
-    }
-
-    generateExercises();
-  </script>
 </body>
 </html>
