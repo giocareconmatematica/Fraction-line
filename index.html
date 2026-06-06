@@ -1,116 +1,290 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Frazioni sulla linea</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generatore - Frazioni sulla linea dei numeri</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 40px;
+    :root{
+      --ink:#111;
+      --soft:#666;
+      --page-w:210mm;
+      --page-h:297mm;
     }
-
-    .line-container {
-      position: relative;
-      width: 600px;
-      height: 80px;
-      margin: 40px auto;
-    }
-
-    .line {
-      position: absolute;
-      top: 40px;
-      width: 100%;
-      height: 2px;
-      background: black;
-    }
-
-    .point {
-      position: absolute;
-      top: 30px;
-      width: 10px;
-      height: 10px;
-      background: red;
-      border-radius: 50%;
-    }
-
-    .label {
-      position: absolute;
-      top: 50px;
-      transform: translateX(-50%);
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 20px;
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial, Helvetica, sans-serif;background:#e9e9e9;color:var(--ink)}
+    .app{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px;align-items:start}
+    .panel{background:#fff;border:1px solid #ccc;border-radius:12px;padding:16px;position:sticky;top:20px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    h1{font-size:20px;margin:0 0 12px}
+    label{display:block;font-size:13px;margin:12px 0 4px}
+    input,select,textarea,button{width:100%;font:inherit;padding:8px;border:1px solid #bbb;border-radius:8px}
+    textarea{min-height:210px;resize:vertical;font-family:Consolas, monospace;font-size:12px;line-height:1.35}
+    button{margin-top:12px;background:#111;color:#fff;border:none;font-weight:700;cursor:pointer}
+    button.secondary{background:#fff;color:#111;border:1px solid #111}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hint{font-size:12px;line-height:1.35;color:#555;margin-top:8px}
+    .page-wrap{display:flex;justify-content:center}
+    .page{width:var(--page-w);height:var(--page-h);background:#fff;box-shadow:0 3px 18px rgba(0,0,0,.22);padding:13mm 13mm 10mm;display:flex;flex-direction:column;gap:7mm}
+    .title{text-align:center;font-size:21px;font-weight:700;margin-bottom:1mm}
+    .subtitle{text-align:center;font-size:12px;color:#444;margin-top:-4mm;margin-bottom:1mm}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:6mm 8mm;flex:1}
+    .grid.six{grid-template-rows:repeat(3,1fr)}
+    .grid.eight{grid-template-rows:repeat(4,1fr)}
+    .task{border:1.3px solid #111;border-radius:5px;padding:7mm 6mm 4mm;position:relative;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;break-inside:avoid}
+    .num{position:absolute;top:3mm;left:4mm;font-size:12px;color:#333}
+    .question{font-size:14px;line-height:1.25;margin:0 0 5mm 8mm;min-height:12mm}
+    .lineBox{width:100%;height:38mm;margin-top:0}
+    .options{display:flex;justify-content:space-around;gap:5mm;margin-top:1mm;font-size:15px}
+    .option{white-space:nowrap}
+    .square{font-size:17px;margin-right:2mm}
+    .footer{text-align:center;font-size:9px;color:#777;margin-top:auto}
+    svg text{font-family:Arial, Helvetica, sans-serif;fill:#111;font-size:13px}
+    .smallLabel{font-size:12px}
+    .pointLabel{font-size:13px;font-weight:700}
+    @media print{
+      body{background:#fff}
+      .panel{display:none}
+      .app{display:block;padding:0}
+      .page-wrap{display:block}
+      .page{width:210mm;height:297mm;box-shadow:none;margin:0;padding:13mm 13mm 10mm;page-break-after:always}
+      @page{size:A4 portrait;margin:0}
     }
   </style>
 </head>
 <body>
+<div class="app">
+  <aside class="panel">
+    <h1>Linea dei numeri: frazioni</h1>
+    <label>Livello</label>
+    <select id="level">
+      <option value="1">Livello 1 — scegli la frazione più vicina al punto</option>
+      <option value="2">Livello 2 — usa una frazione di riferimento</option>
+    </select>
 
-<h2>Quale frazione è più vicina al punto A?</h2>
+    <div class="row">
+      <div>
+        <label>Esercizi per pagina</label>
+        <select id="count"><option value="6">6</option><option value="8">8</option></select>
+      </div>
+      <div>
+        <label>Intervallo</label>
+        <select id="interval"><option value="0">0–1</option><option value="1">1–2</option><option value="2">2–3</option></select>
+      </div>
+    </div>
 
-<div class="line-container">
-  <div class="line"></div>
-  <div id="pointA" class="point"></div>
-  <div id="labelA" class="label">A</div>
+    <label>Titolo</label>
+    <input id="title" value="Frazioni sulla linea dei numeri" />
+
+    <label>Dati degli esercizi</label>
+    <textarea id="data"></textarea>
+    <div class="hint">
+      Puoi modificare tutto. Formato righe:<br>
+      Livello 1: <code>sinistra | puntoA | opzione1 | opzione2</code><br>
+      Livello 2: <code>sinistra | riferimento | puntoA | opzione1 | opzione2</code><br>
+      Esempi: <code>0 | 0.69 | 2/3 | 3/4</code>, oppure <code>1 | 1 1/2 | 1.68 | 1 2/3 | 1 3/4</code>.
+    </div>
+
+    <button onclick="generateRandom()">Genera nuovi esercizi</button>
+    <button class="secondary" onclick="render()">Aggiorna anteprima</button>
+    <button class="secondary" onclick="window.print()">Stampa / salva PDF</button>
+  </aside>
+
+  <main class="page-wrap">
+    <section class="page" id="page">
+      <div class="title" id="pageTitle"></div>
+      <div class="subtitle" id="pageSubtitle"></div>
+      <div class="grid six" id="grid"></div>
+      <div class="footer">Giocare con la matematica</div>
+    </section>
+  </main>
 </div>
 
-<div id="options"></div>
-
-<button onclick="generate()">Genera nuovo esercizio</button>
-
 <script>
-function generate() {
-  const denominators = [2, 3, 4, 5, 6, 8];
-  const d = denominators[Math.floor(Math.random() * denominators.length)];
+  const FRACTIONS = [
+    '1/4','1/3','2/5','1/2','3/5','2/3','3/4','4/5','5/6','7/8',
+    '1/5','3/8','5/8','7/10','5/12','7/12','11/12'
+  ];
+  const BENCHMARKS = ['1/4','1/3','1/2','2/3','3/4'];
 
-  let fractions = [];
-  for (let i = 1; i < d; i++) {
-    fractions.push({ n: i, d: d, value: i / d });
+  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1}
+
+  function parseValue(text){
+    text = String(text).trim().replace(',', '.');
+    if(!text) return NaN;
+    // mixed number, e.g. "1 1/2"
+    const mixed = text.match(/^(-?\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+    if(mixed){
+      const whole = Number(mixed[1]);
+      const n = Number(mixed[2]);
+      const d = Number(mixed[3]);
+      return whole + Math.sign(whole || 1) * n/d;
+    }
+    const frac = text.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+    if(frac) return Number(frac[1]) / Number(frac[2]);
+    return Number(text);
   }
 
-  // punto A casuale
-  let pointValue = Math.random();
+  function properFractionLabel(n,d){
+    const g = gcd(n,d); n/=g; d/=g;
+    return `${n}/${d}`;
+  }
 
-  // posizione punto
-  let pointPixel = pointValue * 600;
-  document.getElementById("pointA").style.left = pointPixel + "px";
-  document.getElementById("labelA").style.left = pointPixel + "px";
+  function labelValue(text){
+    return String(text).trim();
+  }
 
-  // scegli 3 frazioni casuali
-  fractions.sort(() => 0.5 - Math.random());
-  let options = fractions.slice(0, 3);
+  function absFraction(base, fracText){
+    return base + parseValue(fracText);
+  }
 
-  // trova la più vicina
-  let correct = options.reduce((prev, curr) =>
-    Math.abs(curr.value - pointValue) < Math.abs(prev.value - pointValue) ? curr : prev
-  );
+  function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+  function shuffle(arr){ return arr.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]) }
 
-  let container = document.getElementById("options");
-  container.innerHTML = "";
+  function generateRandom(){
+    const level = document.getElementById('level').value;
+    const count = Number(document.getElementById('count').value);
+    const base = Number(document.getElementById('interval').value);
+    const lines = [];
+    let guard = 0;
 
-  options.forEach(f => {
-    let btn = document.createElement("button");
-    btn.innerHTML = `${f.n}/${f.d}`;
+    while(lines.length < count && guard++ < 300){
+      const [f1, f2] = shuffle(FRACTIONS).slice(0,2);
+      const v1 = parseValue(f1), v2 = parseValue(f2);
+      const dist = Math.abs(v1-v2);
+      if(dist < 0.08 || dist > 0.28) continue;
 
-    btn.onclick = () => {
-      if (f === correct) {
-        alert("Corretto!");
+      const correct = Math.random() < .5 ? f1 : f2;
+      const correctVal = parseValue(correct);
+      const otherVal = correct === f1 ? v2 : v1;
+      const maxJitter = Math.min(0.045, Math.abs(correctVal-otherVal)/2 - 0.015);
+      const jitter = (Math.random()*2-1) * Math.max(0.015, maxJitter);
+      let aVal = correctVal + jitter;
+      aVal = Math.max(0.04, Math.min(0.96, aVal));
+      const aText = (base + aVal).toFixed(2).replace(/\.00$/,'');
+      const opts = shuffle([formatWithBase(base, f1), formatWithBase(base, f2)]);
+
+      if(level === '1'){
+        lines.push(`${base} | ${aText} | ${opts[0]} | ${opts[1]}`);
       } else {
-        alert("Riprova");
+        let bench = randomItem(BENCHMARKS.filter(b => b !== f1 && b !== f2));
+        // Prefer a useful reference: often 1/2, sometimes another benchmark.
+        if(Math.random() < .45 && f1 !== '1/2' && f2 !== '1/2') bench = '1/2';
+        lines.push(`${base} | ${formatWithBase(base, bench)} | ${aText} | ${opts[0]} | ${opts[1]}`);
       }
-    };
+    }
+    document.getElementById('data').value = lines.join('\n');
+    render();
+  }
 
-    container.appendChild(btn);
-  });
-}
+  function formatWithBase(base, fracText){
+    if(base === 0) return fracText;
+    return `${base} ${fracText}`;
+  }
 
-// primo esercizio
-generate();
+  function parseRows(){
+    const level = document.getElementById('level').value;
+    return document.getElementById('data').value
+      .split('\n')
+      .map(r => r.trim())
+      .filter(r => r && !r.startsWith('#'))
+      .map(row => row.split('|').map(x => x.trim()))
+      .map(parts => {
+        if(level === '1'){
+          return {left:parts[0], point:parts[1], opt1:parts[2], opt2:parts[3]};
+        }
+        return {left:parts[0], ref:parts[1], point:parts[2], opt1:parts[3], opt2:parts[4]};
+      });
+  }
+
+  function xFor(value, leftValue, width){
+    // hidden interval is always one unit long: leftValue → leftValue + 1
+    const margin = 30;
+    const usable = width - margin*2;
+    const t = (value - leftValue);
+    return margin + t * usable;
+  }
+
+  function renderFractionText(x, y, label, cls='smallLabel'){
+    return `<text x="${x}" y="${y}" text-anchor="middle" class="${cls}">${escapeHtml(label)}</text>`;
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
+  }
+
+  function drawLineSVG(ex, level){
+    const W = 330, H = 142;
+    const y = 74;
+    const leftVal = parseValue(ex.left);
+    const pointVal = parseValue(ex.point);
+    const xA = xFor(pointVal, leftVal, W);
+    const x0 = 30, xEnd = W - 30;
+
+    let marks = '';
+    marks += `<line x1="${x0}" y1="${y}" x2="${xEnd}" y2="${y}" stroke="#111" stroke-width="2"/>`;
+    marks += `<line x1="${x0}" y1="${y-7}" x2="${x0}" y2="${y+7}" stroke="#111" stroke-width="2"/>`;
+    marks += renderFractionText(x0, y+28, ex.left, 'smallLabel');
+
+    if(level === '1'){
+      const rightLabel = String(leftVal + 1).replace('.00','');
+      marks += `<line x1="${xEnd}" y1="${y-7}" x2="${xEnd}" y2="${y+7}" stroke="#111" stroke-width="2"/>`;
+      marks += renderFractionText(xEnd, y+28, rightLabel, 'smallLabel');
+    }
+
+    if(level === '2'){
+      const refVal = parseValue(ex.ref);
+      const xRef = xFor(refVal, leftVal, W);
+      if(Number.isFinite(xRef) && xRef > 18 && xRef < W-18){
+        marks += `<line x1="${xRef}" y1="${y-8}" x2="${xRef}" y2="${y+8}" stroke="#111" stroke-width="2"/>`;
+        marks += renderFractionText(xRef, y+29, labelValue(ex.ref), 'smallLabel');
+      }
+    }
+
+    if(Number.isFinite(xA)){
+      marks += `<circle cx="${xA}" cy="${y}" r="5.2" fill="#111"/>`;
+      marks += renderFractionText(xA, y-15, 'A', 'pointLabel');
+    }
+
+    return `<svg class="lineBox" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${marks}</svg>`;
+  }
+
+  function render(){
+    const level = document.getElementById('level').value;
+    const count = Number(document.getElementById('count').value);
+    document.getElementById('pageTitle').textContent = document.getElementById('title').value;
+    document.getElementById('pageSubtitle').textContent = level === '1'
+      ? 'Scegli la frazione più vicina al punto A.'
+      : 'Usa la frazione segnata sulla linea per orientarti. Il numero 1 non è segnato.';
+
+    const grid = document.getElementById('grid');
+    grid.className = 'grid ' + (count === 8 ? 'eight' : 'six');
+    grid.innerHTML = '';
+
+    const rows = parseRows().slice(0,count);
+    rows.forEach((ex, i) => {
+      const question = level === '1'
+        ? 'Quale frazione è più vicina al punto A?'
+        : 'Il punto A è più vicino a quale frazione?';
+      const div = document.createElement('div');
+      div.className = 'task';
+      div.innerHTML = `
+        <div class="num">${i+1}</div>
+        <div class="question">${question}</div>
+        ${drawLineSVG(ex, level)}
+        <div class="options">
+          <div class="option"><span class="square">□</span>${escapeHtml(ex.opt1 || '')}</div>
+          <div class="option"><span class="square">□</span>${escapeHtml(ex.opt2 || '')}</div>
+        </div>`;
+      grid.appendChild(div);
+    });
+  }
+
+  document.getElementById('level').addEventListener('change', generateRandom);
+  document.getElementById('count').addEventListener('change', generateRandom);
+  document.getElementById('interval').addEventListener('change', generateRandom);
+  document.getElementById('title').addEventListener('input', render);
+
+  generateRandom();
 </script>
-
 </body>
 </html>
